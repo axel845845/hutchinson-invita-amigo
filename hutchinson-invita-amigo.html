@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1a1a1a">
+<title>Hutchinson — Invita a trabajar a un amigo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;-webkit-text-size-adjust:100%;background:#f0f0f0;}
+  body{font-family:'Nunito',sans-serif;color:#1a1a1a;}
+  .top-bar{background:#1a1a1a;padding:14px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;}
+  .top-logo{font-size:18px;font-weight:900;color:#fff;letter-spacing:1px;}
+  .top-logo em{color:#e63312;font-style:normal;}
+  .top-step{margin-left:auto;font-size:13px;color:#aaa;font-weight:700;}
+  .progress-wrap{background:#333;height:5px;}
+  .progress-fill{height:5px;background:#e63312;transition:width .4s ease;border-radius:0 3px 3px 0;}
+  .screen{display:none;padding:24px 18px 60px;max-width:560px;margin:0 auto;}
+  .screen.active{display:block;}
+  .chips{display:flex;justify-content:center;gap:8px;margin-bottom:24px;}
+  .chip{width:10px;height:10px;border-radius:50%;background:#ddd;transition:all .3s;}
+  .chip.active{width:28px;border-radius:6px;background:#e63312;}
+  .chip.done{background:#22a06b;}
+  .s-title{font-size:26px;font-weight:900;color:#1a1a1a;text-align:center;line-height:1.2;margin-bottom:8px;}
+  .s-desc{font-size:16px;color:#666;text-align:center;line-height:1.6;margin-bottom:28px;}
+  .field{background:#fff;border-radius:16px;padding:18px 20px;margin-bottom:12px;border:2px solid #e8e8e8;transition:border-color .2s;}
+  .field:focus-within{border-color:#e63312;}
+  .field.ok{border-color:#22a06b;}
+  .field.error{border-color:#e63312;background:#fff8f7;}
+  .field.loading{border-color:#f0a500;}
+  .field.autofilled{border-color:#22a06b;background:#f6fff8;}
+  .field-label{font-size:12px;font-weight:800;color:#999;letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .autofill-badge{font-size:11px;font-weight:800;color:#22a06b;background:#e8f5e9;padding:2px 8px;border-radius:20px;}
+  .field input,.field select{font-family:'Nunito',sans-serif;font-size:22px;font-weight:700;color:#1a1a1a;border:none;outline:none;width:100%;background:transparent;padding:0;line-height:1.3;}
+  .field input::placeholder{color:#ccc;font-weight:600;}
+  .field input:read-only{color:#444;cursor:default;}
+  .field select{-webkit-appearance:none;appearance:none;cursor:pointer;}
+  .field-err{font-size:13px;font-weight:700;color:#e63312;margin-top:8px;display:none;}
+  .field-hint{font-size:13px;font-weight:700;color:#f0a500;margin-top:8px;display:none;}
+  .field.error .field-err{display:block;}
+  .field.loading .field-hint{display:block;}
+  .spinner{display:none;width:22px;height:22px;flex-shrink:0;}
+  .spinner.visible{display:block;}
+  .spinner svg{animation:spin .8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .not-found-box{background:#fff8f1;border:2px solid #f0a500;border-radius:14px;padding:16px 18px;margin-bottom:12px;display:none;gap:12px;align-items:flex-start;}
+  .not-found-box.visible{display:flex;}
+  .not-found-box svg{width:20px;height:20px;stroke:#f0a500;fill:none;stroke-width:2;flex-shrink:0;margin-top:2px;}
+  .not-found-text{font-size:14px;font-weight:700;color:#b07000;line-height:1.5;}
+  .radio-group{display:flex;gap:10px;flex-wrap:wrap;margin-top:4px;}
+  .radio-btn{flex:1;min-width:90px;padding:12px 10px;border:2px solid #e8e8e8;border-radius:12px;text-align:center;font-size:15px;font-weight:700;color:#888;cursor:pointer;transition:all .2s;background:#fff;font-family:'Nunito',sans-serif;}
+  .radio-btn.selected{border-color:#e63312;color:#e63312;background:#fff5f3;}
+  .radio-btn input{display:none;}
+  .btn-next{display:block;width:100%;background:#e63312;color:#fff;font-family:'Nunito',sans-serif;font-size:22px;font-weight:900;padding:20px;border:none;border-radius:16px;cursor:pointer;margin-top:24px;transition:opacity .15s,transform .1s;}
+  .btn-next:active{opacity:.85;transform:scale(.98);}
+  .btn-next:disabled{background:#ccc;cursor:not-allowed;}
+  .btn-back{display:block;width:100%;background:transparent;color:#999;font-family:'Nunito',sans-serif;font-size:16px;font-weight:700;padding:14px;border:2px solid #e0e0e0;border-radius:16px;cursor:pointer;margin-top:10px;}
+  .btn-back:active{background:#f5f5f5;}
+  .tip{background:#fff3f1;border-radius:14px;padding:14px 16px;margin-bottom:20px;display:flex;gap:12px;align-items:flex-start;}
+  .tip svg{width:20px;height:20px;stroke:#e63312;fill:none;stroke-width:2;flex-shrink:0;margin-top:2px;}
+  .tip-text{font-size:14px;color:#b03000;font-weight:700;line-height:1.55;}
+  .photo-guide{background:#fff;border-radius:16px;padding:20px;margin-bottom:14px;border:2px solid #e8e8e8;}
+  .guide-title{font-size:12px;font-weight:800;color:#999;letter-spacing:.8px;text-transform:uppercase;margin-bottom:16px;}
+  .guide-steps{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .guide-step{background:#f8f8f8;border-radius:12px;padding:14px 12px;text-align:center;}
+  .guide-step-icon{width:44px;height:44px;border-radius:50%;background:#fff;border:2px solid #e8e8e8;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;}
+  .guide-step-icon svg{width:22px;height:22px;stroke:#e63312;fill:none;stroke-width:1.8;}
+  .guide-step-text{font-size:13px;font-weight:700;color:#444;line-height:1.4;}
+  .photo-btn{background:#fff;border-radius:16px;border:3px dashed #ddd;padding:32px 20px;text-align:center;cursor:pointer;transition:border-color .2s;width:100%;display:block;margin-bottom:12px;}
+  .photo-btn:active{background:#fafafa;}
+  .photo-btn-icon{width:60px;height:60px;border-radius:50%;background:#fff3f1;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;}
+  .photo-btn-icon svg{width:30px;height:30px;stroke:#e63312;fill:none;stroke-width:2;}
+  .photo-btn-title{font-size:20px;font-weight:800;color:#1a1a1a;margin-bottom:6px;}
+  .photo-btn-hint{font-size:14px;color:#999;line-height:1.5;}
+  .preview-wrap{display:none;background:#000;border-radius:16px;overflow:hidden;margin-bottom:12px;position:relative;}
+  .preview-wrap.visible{display:block;}
+  .preview-img{width:100%;max-height:300px;object-fit:contain;display:block;}
+  .preview-overlay{background:rgba(0,0,0,.6);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;}
+  .preview-ok{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:800;color:#4caf50;}
+  .preview-ok svg{width:18px;height:18px;stroke:#4caf50;fill:none;stroke-width:2.5;}
+  .preview-retake{font-size:14px;font-weight:800;color:#fff;background:rgba(255,255,255,.2);border:none;border-radius:8px;padding:8px 14px;cursor:pointer;font-family:'Nunito',sans-serif;}
+  .confirm-card{background:#fff;border-radius:16px;border:2px solid #e8e8e8;padding:20px;margin-bottom:14px;}
+  .confirm-title{font-size:12px;font-weight:800;color:#999;letter-spacing:.8px;text-transform:uppercase;margin-bottom:14px;}
+  .confirm-row{display:flex;justify-content:space-between;align-items:flex-start;padding:10px 0;border-bottom:1px solid #f0f0f0;gap:12px;}
+  .confirm-row:last-child{border-bottom:none;}
+  .confirm-label{font-size:14px;color:#999;font-weight:700;flex-shrink:0;}
+  .confirm-value{font-size:15px;color:#1a1a1a;font-weight:800;text-align:right;}
+  .confirm-photo{width:100%;border-radius:10px;object-fit:cover;max-height:140px;display:none;}
+  .confirm-photo.visible{display:block;}
+  .timestamp-badge{display:flex;align-items:center;gap:8px;background:#f5f5f5;border-radius:10px;padding:10px 14px;margin-top:14px;}
+  .timestamp-badge svg{width:16px;height:16px;stroke:#888;fill:none;stroke-width:2;flex-shrink:0;}
+  .timestamp-text{font-size:13px;font-weight:700;color:#888;}
+  .sending-overlay{display:none;position:absolute;inset:0;background:rgba(255,255,255,.92);z-index:200;flex-direction:column;align-items:center;justify-content:center;gap:16px;border-radius:16px;}
+  .sending-overlay.visible{display:flex;}
+  .sending-spinner svg{animation:spin .8s linear infinite;}
+  .sending-text{font-size:16px;font-weight:800;color:#1a1a1a;}
+  .success-wrap{text-align:center;padding:32px 18px 48px;}
+  .success-circle{width:100px;height:100px;border-radius:50%;background:#e8f5e9;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;}
+  .success-circle svg{width:52px;height:52px;stroke:#22a06b;fill:none;stroke-width:2.5;}
+  .success-title{font-size:28px;font-weight:900;color:#1a1a1a;margin-bottom:10px;line-height:1.2;}
+  .success-msg{font-size:17px;color:#555;line-height:1.7;margin-bottom:20px;}
+  .success-msg strong{color:#1a1a1a;}
+  .folio-badge{display:inline-block;background:#1a1a1a;color:#fff;font-size:13px;font-weight:800;padding:8px 20px;border-radius:20px;letter-spacing:1px;margin-bottom:6px;}
+  .ts-badge{display:inline-block;font-size:12px;font-weight:700;color:#999;margin-bottom:28px;}
+  .error-overlay{display:none;background:#fff3f1;border:2px solid #e63312;border-radius:14px;padding:16px 18px;margin-top:16px;gap:12px;align-items:flex-start;}
+  .error-overlay.visible{display:flex;}
+  .error-overlay svg{width:20px;height:20px;stroke:#e63312;fill:none;stroke-width:2;flex-shrink:0;margin-top:2px;}
+  .error-overlay-text{font-size:14px;font-weight:700;color:#b03000;line-height:1.5;}
+  .btn-nuevo{display:block;width:100%;background:#1a1a1a;color:#fff;font-family:'Nunito',sans-serif;font-size:18px;font-weight:800;padding:18px;border:none;border-radius:16px;cursor:pointer;}
+  .btn-nuevo:active{opacity:.85;}
+  @media(max-width:400px){
+    .s-title{font-size:22px;}
+    .field input,.field select{font-size:19px;}
+  }
+</style>
+</head>
+<body>
+
+<script src="empleados.js"></script>
+
+<div class="top-bar">
+  <div class="top-logo">HUT<em>CH</em>INSON<sup style="font-size:9px;color:#666;"> ®</sup></div>
+  <div class="top-step" id="top-step">Paso 1 de 4</div>
+</div>
+<div class="progress-wrap">
+  <div class="progress-fill" id="progress" style="width:25%"></div>
+</div>
+
+<!-- PASO 1 -->
+<div class="screen active" id="s1">
+  <div class="chips">
+    <div class="chip active" id="c1"></div>
+    <div class="chip" id="c2"></div>
+    <div class="chip" id="c3"></div>
+    <div class="chip" id="c4"></div>
+  </div>
+  <div class="s-title">Tus datos</div>
+  <div class="s-desc">Escribe tu número de nómina y tus datos se llenarán solos automáticamente.</div>
+
+  <div class="field" id="fb-nom">
+    <div class="field-label">
+      Tu número de nómina
+      <div class="spinner" id="nomina-spinner">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f0a500" stroke-width="2.5">
+          <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+        </svg>
+      </div>
+    </div>
+    <input id="f-nom" type="text" inputmode="numeric" placeholder="Escribe tu nómina..." maxlength="10" autocomplete="off">
+    <div class="field-hint">Buscando tu información...</div>
+    <div class="field-err">Escribe tu número de nómina</div>
+  </div>
+
+  <div class="not-found-box" id="not-found-box">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <div class="not-found-text">No encontramos esa nómina. Verifica el número e intenta de nuevo. Si el problema continúa, acércate a Recursos Humanos.</div>
+  </div>
+
+  <div class="field autofilled" id="fb-nt" style="display:none;">
+    <div class="field-label">Tu nombre <span class="autofill-badge">Llenado automático</span></div>
+    <input id="f-nt" type="text" readonly>
+  </div>
+  <div class="field autofilled" id="fb-area" style="display:none;">
+    <div class="field-label">Tu área <span class="autofill-badge">Llenado automático</span></div>
+    <input id="f-area" type="text" readonly>
+  </div>
+
+  <button class="btn-next" onclick="goTo(2)">Siguiente →</button>
+</div>
+
+<!-- PASO 2 -->
+<div class="screen" id="s2">
+  <div class="chips">
+    <div class="chip done"></div>
+    <div class="chip active"></div>
+    <div class="chip"></div>
+    <div class="chip"></div>
+  </div>
+  <div class="s-title">Tu recomendado</div>
+  <div class="s-desc">Escribe los datos de la persona que quieres invitar a trabajar.</div>
+
+  <div class="field" id="fb-nr">
+    <div class="field-label">Nombre completo</div>
+    <input id="f-nr" type="text" placeholder="Nombre completo..." autocomplete="off">
+    <div class="field-err">Escribe el nombre de tu recomendado</div>
+  </div>
+  <div class="field" id="fb-edad">
+    <div class="field-label">Edad</div>
+    <input id="f-edad" type="number" inputmode="numeric" placeholder="Ej. 25" min="16" max="70">
+    <div class="field-err">Escribe la edad (entre 16 y 70 años)</div>
+  </div>
+  <div class="field" id="fb-tel">
+    <div class="field-label">Teléfono (10 dígitos)</div>
+    <input id="f-tel" type="tel" inputmode="tel" placeholder="Ej. 4431234567" maxlength="10">
+    <div class="field-err">El teléfono debe tener 10 dígitos</div>
+  </div>
+  <div class="field" id="fb-dom">
+    <div class="field-label">Domicilio</div>
+    <input id="f-dom" type="text" placeholder="Calle, número, colonia..." autocomplete="off">
+    <div class="field-err">Escribe el domicilio</div>
+  </div>
+  <div class="field" id="fb-ciudad">
+    <div class="field-label">Ciudad</div>
+    <input id="f-ciudad" type="text" placeholder="Ej. Celaya" autocomplete="off">
+    <div class="field-err">Escribe la ciudad</div>
+  </div>
+
+  <button class="btn-next" onclick="goTo(3)">Siguiente →</button>
+  <button class="btn-back" onclick="goTo(1)">← Regresar</button>
+</div>
+
+<!-- PASO 3 -->
+<div class="screen" id="s3">
+  <div class="chips">
+    <div class="chip done"></div>
+    <div class="chip done"></div>
+    <div class="chip active"></div>
+    <div class="chip"></div>
+  </div>
+  <div class="s-title">Foto de la solicitud</div>
+  <div class="s-desc">Toma una foto a la solicitud de empleo de <strong id="rec-name-s3" style="color:#e63312;font-weight:900;"></strong> ya llenada y firmada.</div>
+
+  <div class="tip">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <div class="tip-text">Sigue estos consejos para que la foto salga clara y RRHH pueda leerla sin problema.</div>
+  </div>
+
+  <div class="photo-guide">
+    <div class="guide-title">Cómo tomar una buena foto</div>
+    <div class="guide-steps">
+      <div class="guide-step">
+        <div class="guide-step-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="12" y1="3" x2="12" y2="21"/></svg></div>
+        <div class="guide-step-text">Pon el documento sobre una mesa plana</div>
+      </div>
+      <div class="guide-step">
+        <div class="guide-step-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg></div>
+        <div class="guide-step-text">Busca buena luz, sin sombras encima</div>
+      </div>
+      <div class="guide-step">
+        <div class="guide-step-icon"><svg viewBox="0 0 24 24"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg></div>
+        <div class="guide-step-text">El documento debe verse completo, sin cortar</div>
+      </div>
+      <div class="guide-step">
+        <div class="guide-step-icon"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
+        <div class="guide-step-text">Verifica que todos los datos se lean bien</div>
+      </div>
+    </div>
+  </div>
+
+  <input type="file" id="foto-input" accept="image/*" capture="environment" style="display:none" onchange="handlePhoto(this)">
+
+  <div class="preview-wrap" id="preview-wrap">
+    <img class="preview-img" id="preview-img" src="" alt="Vista previa">
+    <div class="preview-overlay">
+      <div class="preview-ok">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        Foto cargada
+      </div>
+      <button class="preview-retake" onclick="retakePhoto()">Tomar de nuevo</button>
+    </div>
+  </div>
+
+  <div class="photo-btn" id="photo-btn" onclick="document.getElementById('foto-input').click()">
+    <div class="photo-btn-icon">
+      <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+    </div>
+    <div class="photo-btn-title">Tomar foto</div>
+    <div class="photo-btn-hint">Se abrirá la cámara de tu celular.<br>También puedes elegir de tu galería.</div>
+  </div>
+
+  <div class="tip" id="photo-size-err" style="display:none;">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <div class="tip-text">La foto parece muy oscura o en blanco. Por favor toma otra con mejor luz.</div>
+  </div>
+
+  <button class="btn-next" onclick="goTo(4)">Siguiente →</button>
+  <button class="btn-back" onclick="goTo(2)">← Regresar</button>
+</div>
+
+<!-- PASO 4 — CONFIRMACIÓN -->
+<div class="screen" id="s4" style="position:relative;">
+  <div class="sending-overlay" id="sending-overlay">
+    <div class="sending-spinner">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#e63312" stroke-width="2">
+        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+      </svg>
+    </div>
+    <div class="sending-text">Guardando en SharePoint...</div>
+  </div>
+
+  <div class="chips">
+    <div class="chip done"></div>
+    <div class="chip done"></div>
+    <div class="chip done"></div>
+    <div class="chip active"></div>
+  </div>
+  <div class="s-title">¿Todo está correcto?</div>
+  <div class="s-desc">Revisa los datos antes de enviar. Si algo está mal, regresa y corrígelo.</div>
+
+  <div class="confirm-card">
+    <div class="confirm-title">Datos del trabajador</div>
+    <div class="confirm-row"><span class="confirm-label">Nombre</span><span class="confirm-value" id="cv-nt"></span></div>
+    <div class="confirm-row"><span class="confirm-label">Nómina</span><span class="confirm-value" id="cv-nom"></span></div>
+    <div class="confirm-row"><span class="confirm-label">Área</span><span class="confirm-value" id="cv-area"></span></div>
+  </div>
+
+  <div class="confirm-card">
+    <div class="confirm-title">Datos del recomendado</div>
+    <div class="confirm-row"><span class="confirm-label">Nombre</span><span class="confirm-value" id="cv-nr"></span></div>
+    <div class="confirm-row"><span class="confirm-label">Edad</span><span class="confirm-value" id="cv-edad"></span></div>
+    <div class="confirm-row"><span class="confirm-label">Teléfono</span><span class="confirm-value" id="cv-tel"></span></div>
+    <div class="confirm-row"><span class="confirm-label">Ciudad</span><span class="confirm-value" id="cv-ciudad"></span></div>
+  </div>
+
+  <div class="confirm-card">
+    <div class="confirm-title">Solicitud de empleo adjunta</div>
+    <img class="confirm-photo" id="cv-photo" src="" alt="Solicitud">
+    <div id="cv-no-photo" style="font-size:14px;color:#999;font-weight:700;padding:4px 0;">No se adjuntó foto</div>
+    <div class="timestamp-badge">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span class="timestamp-text" id="cv-timestamp"></span>
+    </div>
+  </div>
+
+  <div class="error-overlay" id="send-error">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <div class="error-overlay-text">Hubo un problema al guardar. Verifica tu conexión a internet e intenta de nuevo. Si el problema continúa, acércate a RRHH.</div>
+  </div>
+
+  <button class="btn-next" id="btn-enviar" onclick="submitForm()">Enviar inscripción</button>
+  <button class="btn-back" onclick="goTo(3)">← Regresar y corregir</button>
+</div>
+
+<!-- ÉXITO -->
+<div class="screen" id="s-success">
+  <div class="success-wrap">
+    <div class="success-circle">
+      <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <div class="success-title">¡Inscripción enviada!</div>
+    <div class="success-msg">
+      Tu recomendación fue registrada correctamente.<br>
+      Recursos Humanos contactará a<br>
+      <strong id="s-rec-name"></strong> muy pronto.
+    </div>
+    <div class="folio-badge" id="s-folio"></div><br>
+    <div class="ts-badge" id="s-timestamp"></div>
+    <div style="font-size:14px;color:#999;margin-bottom:16px;font-weight:700;margin-top:24px;">¿Quieres recomendar a otra persona?</div>
+    <button class="btn-nuevo" onclick="resetForm()">Registrar otra recomendación</button>
+  </div>
+</div>
+
+<script>
+  /* ══════════════════════════════════════════════════════
+     CONFIGURACIÓN — solo cambia este valor si cambia el flujo
+  ══════════════════════════════════════════════════════ */
+  var WEBHOOK_URL = 'https://default9294fcde91324462a6f2014f64d2a0.5d.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/cfd742e425174ecdaa71fd35874bebd8/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=J_-FdUgrDdNQ8n-8hBxKywTdssBIL6QxZQRrD9eeH2s';
+  /* ══════════════════════════════════════════════════════ */
+
+  var photoFile = null;
+  var registroTimestamp = '';
+  var nominaTimer = null;
+
+  /* ─── AUTOCOMPLETADO ─────────────────────────────────── */
+  document.getElementById('f-nom').addEventListener('input', function(){
+    var val = this.value.trim();
+    clearTimeout(nominaTimer);
+    hideAutofields();
+    document.getElementById('not-found-box').classList.remove('visible');
+    document.getElementById('fb-nom').classList.remove('loading','ok','error');
+    document.getElementById('nomina-spinner').classList.remove('visible');
+    if(!val || val.length < 3) return;
+    nominaTimer = setTimeout(function(){
+      document.getElementById('fb-nom').classList.add('loading');
+      document.getElementById('nomina-spinner').classList.add('visible');
+      setTimeout(function(){
+        document.getElementById('fb-nom').classList.remove('loading');
+        document.getElementById('nomina-spinner').classList.remove('visible');
+        var emp = (typeof EMPLEADOS !== 'undefined') ? EMPLEADOS[val] : null;
+        if(emp){
+          document.getElementById('f-nt').value   = emp.nombre;
+          document.getElementById('f-area').value = emp.area;
+          showAutofields();
+          document.getElementById('fb-nom').classList.add('ok');
+        } else {
+          hideAutofields();
+          document.getElementById('not-found-box').classList.add('visible');
+          document.getElementById('fb-nom').classList.add('error');
+        }
+      }, 500);
+    }, 400);
+  });
+
+  function showAutofields(){
+    document.getElementById('fb-nt').style.display   = 'block';
+    document.getElementById('fb-area').style.display = 'block';
+  }
+  function hideAutofields(){
+    document.getElementById('fb-nt').style.display   = 'none';
+    document.getElementById('fb-area').style.display = 'none';
+    document.getElementById('f-nt').value = '';
+    document.getElementById('f-area').value = '';
+  }
+
+  /* ─── VALIDACIONES ───────────────────────────────────── */
+  function v(id){ return document.getElementById(id).value.trim(); }
+  function setOk(id){ var e=document.getElementById(id); if(e){e.classList.remove('error');e.classList.add('ok');} }
+  function setErr(id){ var e=document.getElementById(id); if(e){e.classList.add('error');e.classList.remove('ok');} }
+
+  function validateStep1(){
+    var nom = v('f-nom');
+    var emp = (typeof EMPLEADOS !== 'undefined') ? EMPLEADOS[nom] : null;
+    if(!nom){ setErr('fb-nom'); return false; }
+    if(!emp){ setErr('fb-nom'); document.getElementById('not-found-box').classList.add('visible'); return false; }
+    setOk('fb-nom'); return true;
+  }
+
+  function validateStep2(){
+    var ok=true;
+    if(!v('f-nr')){ setErr('fb-nr'); ok=false; } else setOk('fb-nr');
+    var edad=parseInt(v('f-edad'));
+    if(!v('f-edad')||isNaN(edad)||edad<16||edad>70){ setErr('fb-edad'); ok=false; } else setOk('fb-edad');
+    if(v('f-tel').length<10){ setErr('fb-tel'); ok=false; } else setOk('fb-tel');
+    if(!v('f-dom')){ setErr('fb-dom'); ok=false; } else setOk('fb-dom');
+    if(!v('f-ciudad')){ setErr('fb-ciudad'); ok=false; } else setOk('fb-ciudad');
+    if(!ok){ var f=document.querySelector('#s2 .field.error'); if(f) f.scrollIntoView({behavior:'smooth',block:'center'}); }
+    return ok;
+  }
+
+  /* ─── FOTO ───────────────────────────────────────────── */
+  function handlePhoto(input){
+    if(!input.files||!input.files[0]) return;
+    var file=input.files[0];
+    document.getElementById('photo-size-err').style.display='none';
+    if(file.size<30000){ document.getElementById('photo-size-err').style.display='flex'; return; }
+    photoFile=file;
+    var reader=new FileReader();
+    reader.onload=function(e){
+      document.getElementById('preview-img').src=e.target.result;
+      document.getElementById('preview-wrap').classList.add('visible');
+      document.getElementById('photo-btn').style.display='none';
+    };
+    reader.readAsDataURL(file);
+  }
+  function retakePhoto(){
+    photoFile=null;
+    document.getElementById('foto-input').value='';
+    document.getElementById('preview-wrap').classList.remove('visible');
+    document.getElementById('photo-btn').style.display='block';
+  }
+
+  /* ─── TIMESTAMP ──────────────────────────────────────── */
+  function getTimestamp(){
+    var now=new Date();
+    var dias=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+    var meses=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+    return dias[now.getDay()]+' '+now.getDate()+' de '+meses[now.getMonth()]+' de '+now.getFullYear()+' a las '+now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+  }
+
+  /* ─── NAVEGACIÓN ─────────────────────────────────────── */
+  function goTo(n){
+    if(n===2 && !validateStep1()) return;
+    if(n===3 && !validateStep2()) return;
+    if(n===4){
+      document.getElementById('rec-name-s3').textContent=v('f-nr');
+      fillConfirm();
+    }
+    for(var i=1;i<=4;i++) document.getElementById('s'+i).classList.remove('active');
+    document.getElementById('s-success').classList.remove('active');
+    document.getElementById('s'+n).classList.add('active');
+    var labels=['','Paso 1 de 4','Paso 2 de 4','Paso 3 de 4','Revisar y enviar'];
+    document.getElementById('top-step').textContent=labels[n];
+    document.getElementById('progress').style.width=(n/4*100)+'%';
+    updateChips(n);
+    window.scrollTo(0,0);
+  }
+
+  function updateChips(active){
+    for(var i=1;i<=4;i++){
+      var c=document.getElementById('c'+i);
+      if(!c) return;
+      c.className='chip'+(i<active?' done':i===active?' active':'');
+    }
+  }
+
+  function fillConfirm(){
+    registroTimestamp=new Date().toISOString();
+    document.getElementById('cv-nt').textContent   =v('f-nt');
+    document.getElementById('cv-nom').textContent  =v('f-nom');
+    document.getElementById('cv-area').textContent =v('f-area');
+    document.getElementById('cv-nr').textContent   =v('f-nr');
+    document.getElementById('cv-edad').textContent =v('f-edad')+' años';
+    document.getElementById('cv-tel').textContent  =v('f-tel');
+    document.getElementById('cv-ciudad').textContent=v('f-ciudad');
+    document.getElementById('cv-timestamp').textContent='Registro: '+getTimestamp();
+    var cvPhoto=document.getElementById('cv-photo');
+    var cvNoPhoto=document.getElementById('cv-no-photo');
+    if(photoFile){ cvPhoto.src=document.getElementById('preview-img').src; cvPhoto.classList.add('visible'); cvNoPhoto.style.display='none'; }
+    else { cvPhoto.classList.remove('visible'); cvNoPhoto.style.display='block'; }
+  }
+
+  /* ─── ENVÍO VÍA POWER AUTOMATE ──────────────────────── */
+  async function submitForm(){
+    var btn = document.getElementById('btn-enviar');
+    var overlay = document.getElementById('sending-overlay');
+    var errBox = document.getElementById('send-error');
+    btn.disabled = true;
+    errBox.classList.remove('visible');
+    overlay.classList.add('visible');
+
+    try {
+      var folio = 'HUT-'+new Date().getFullYear()+'-'+Math.floor(Math.random()*90000+10000);
+
+      var fotoBase64 = '';
+      var fotoExt = 'jpg';
+      if(photoFile){
+        fotoExt = photoFile.name.split('.').pop() || 'jpg';
+        var reader = new FileReader();
+        fotoBase64 = await new Promise(function(resolve){
+          reader.onload = function(e){
+            var result = e.target.result;
+            resolve(result.split(',')[1]);
+          };
+          reader.readAsDataURL(photoFile);
+        });
+      }
+
+      var payload = {
+        'FechaRegistro':     registroTimestamp,
+        'NombreTrabajador':  v('f-nt'),
+        'Nomina':            v('f-nom'),
+        'Area':              v('f-area'),
+        'NombreRecomendado': v('f-nr'),
+        'Edad':              v('f-edad'),
+        'Telefono':          v('f-tel'),
+        'Domicilio':         v('f-dom'),
+        'Ciudad':            v('f-ciudad'),
+        'FotoBase64':        fotoBase64,
+        'FotoExtension':     fotoExt,
+        'Folio':             folio
+      };
+
+      var resp = await fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if(!resp.ok) throw new Error('HTTP '+resp.status);
+
+      overlay.classList.remove('visible');
+      btn.disabled = false;
+
+      document.getElementById('s-rec-name').textContent = v('f-nr');
+      document.getElementById('s-folio').textContent    = 'Folio: '+folio;
+      document.getElementById('s-timestamp').textContent= getTimestamp();
+
+      for(var i=1;i<=4;i++) document.getElementById('s'+i).classList.remove('active');
+      document.getElementById('s-success').classList.add('active');
+      document.getElementById('top-step').textContent='¡Listo!';
+      document.getElementById('progress').style.width='100%';
+      window.scrollTo(0,0);
+
+    } catch(err) {
+      overlay.classList.remove('visible');
+      btn.disabled = false;
+      errBox.classList.add('visible');
+      errBox.scrollIntoView({behavior:'smooth', block:'center'});
+    }
+  }
+
+  /* ─── RESET ──────────────────────────────────────────── */
+  function resetForm(){
+    ['f-nom','f-nr','f-edad','f-tel','f-dom','f-ciudad'].forEach(function(id){ document.getElementById(id).value=''; });
+    hideAutofields();
+    document.getElementById('not-found-box').classList.remove('visible');
+    document.getElementById('fb-nom').classList.remove('ok','error','loading');
+    document.querySelectorAll('.field').forEach(function(f){ f.classList.remove('error','ok'); });
+    retakePhoto();
+    document.getElementById('send-error').classList.remove('visible');
+    document.getElementById('s-success').classList.remove('active');
+    document.getElementById('s1').classList.add('active');
+    document.getElementById('top-step').textContent='Paso 1 de 4';
+    document.getElementById('progress').style.width='25%';
+    updateChips(1);
+    window.scrollTo(0,0);
+  }
+
+  document.querySelectorAll('.field input:not([readonly])').forEach(function(el){
+    el.addEventListener('input',function(){
+      var fb=el.closest('.field');
+      if(!fb) return;
+      if(el.value.trim()){ fb.classList.remove('error'); fb.classList.add('ok'); }
+      else { fb.classList.remove('ok'); }
+    });
+  });
+</script>
+</body>
+</html>
